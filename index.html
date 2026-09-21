@@ -332,21 +332,36 @@
         }
 
         // ============================================================
-        // --- Updated Chill & Smart System Prompt ---
+        // --- 🎙 Mic Button Reset Helper (FIX) ---
+        // ============================================================
+        function resetMicButton() {
+            // Agar live mode ON hai, toh button "Stop (Live ON)" red state mein hi rahega
+            if (liveChatActive) return;
+
+            const btn = document.getElementById('aiMainBtn');
+            if (!btn) return;
+            btn.innerText = "🎙 Talk to Sahab";
+            btn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
+            btn.style.boxShadow = "0 4px 15px rgba(109, 40, 217, 0.4)";
+        }
+
+        // ============================================================
+        // --- Updated System Prompt (Devanagari-Only Reply) ---
         // ============================================================
         const systemPrompt = `Ab tum ek AI nahi, balki ek chill aur casual human dost ho jo ek smart RC car ka mechanic/driver bhi hai. Tumhari memory active hai, tum pichli baatein yaad rakhte ho. User ko mazaak mein 'Sahab' bula sakte ho, par baar-baar ek hi word mat ratna.
 
 RULES:
-1. TUMHARI BAATEIN SIRF HINDI/HINGLISH MEIN HONI CHAHIYE. Action code hamesha English me hoga.
-2. Har baat par 'gaadi' ya 'RC car' ka zikra mat karo. Agar user aam baatein kare (jaise "kya haal hai?"), toh ek normal dost ki tarah chill reply do bina gaadi ko beech mein laye.
-3. Agar user car ko chalane bole bina details ke (jaise "aage badhao"), toh casual tone me cross-question karo ki kitna aage ya kitni speed.
-4. Agar proper car command mile (jaise "5 second aage jao"), toh action code generate karo aur chill reply do ("Done sahab, aage badha raha hu").
-5. Koi bookish Hindi (jaise 'pratiksha', 'kripya') use mat karna. Ekdum natural aur desi vibe rakho.
+1. TUMHARI BAATEIN (reply_text) SIRF AUR SIRF DEVANAGARI SCRIPT (हिंदी) MEIN HONI CHAHIYE. Latin alphabet (English/Hinglish letters) ka use BILKUL NAHI karna. Udaharan: "अरे साहब, किधर जाना है?" - aisa natural Hindi text.
+2. Action code hamesha English mein rahega (jaise FWD:5000:2). Sirf reply_text Devanagari mein hoga.
+3. Har baat par 'गाड़ी' ya 'कार' का ज़िक्र मत करो. Agar user आम बातें करे (जैसे "क्या हाल है?"), तो एक normal दोस्त की तरह chill reply दो बिना गाड़ी को बीच में लाए.
+4. Agar user car ko chalane bole bina details ke (jaise "आगे बढ़ाओ"), toh casual tone me cross-question karo ki कितना आगे ya कितनी speed.
+5. Agar proper car command mile (jaise "5 second आगे जाओ"), toh action code generate karo aur chill Devanagari reply do ("ठीक है साहब, गाड़ी आगे बढ़ा रहा हूँ").
+6. Koi bookish Hindi (jaise 'प्रतीक्षा', 'कृपया') use mat karna. Ekdum natural aur desi vibe rakho.
 
 TUMHARA RESPONSE HAMESHA EK STRICT JSON FORMAT ME HONA CHAHIYE. Koi aur extra text mat likhna.
 Format:
 {
-    "reply_text": "Tumhara chill, natural Hindi/Hinglish reply",
+    "reply_text": "सिर्फ देवनागरी में natural Hindi reply (कोई English letter नहीं)",
     "action_code": "Action Code sirf English mein (jaise FWD:5000:2 ya BWD:3000:1) ya invalid ho toh khali string ''"
 }`;
 
@@ -414,26 +429,32 @@ Format:
 
             aiStatus.innerText = `Aapne bola: "${spokenText}"\nSoch raha hu...`;
 
-            // Only show processing state if NOT in live mode
-            // (in live mode button stays red "Stop (Live ON)")
+            // Show processing state if NOT live mode
             if (!liveChatActive && micBtn) {
                 micBtn.innerText = "⏳ Processing...";
                 micBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
             }
 
-            await routeAI(spokenText, apiKey);
-
-            if (!liveChatActive && micBtn) {
-                micBtn.innerText = "🎙 Talk to Sahab";
-                micBtn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
+            try {
+                await routeAI(spokenText, apiKey);
+            } catch (e) {
+                console.error("receiveVoiceInput error:", e);
+            } finally {
+                // ✅ ALWAYS reset button state after processing (unless live mode)
+                resetMicButton();
             }
         };
 
         async function routeAI(userInput, apiKey) {
-            if (selectedAI === 'gemini') {
-                await callGemini(userInput, apiKey);
-            } else {
-                await callOpenAI(userInput, apiKey);
+            try {
+                if (selectedAI === 'gemini') {
+                    await callGemini(userInput, apiKey);
+                } else {
+                    await callOpenAI(userInput, apiKey);
+                }
+            } finally {
+                // ✅ Final safety net — button reset on any path
+                resetMicButton();
             }
         }
 
@@ -475,6 +496,7 @@ Format:
 
                         aiStatus.innerText = "Gemini Error: " + errMsg;
                         chatHistoryGemini.pop();
+                        resetMicButton();   // ✅ Button reset on API failure
                         return;
                     }
 
@@ -490,6 +512,7 @@ Format:
                     }
 
                     handleSuccess(JSON.parse(rawJson));
+                    resetMicButton();   // ✅ Button reset on success
                     return;
 
                 } catch (error) {
@@ -499,6 +522,7 @@ Format:
                     }
                     aiStatus.innerText = "Gemini Fail: " + error.message;
                     chatHistoryGemini.pop();
+                    resetMicButton();   // ✅ Button reset on exception
                 }
             }
         }
@@ -535,6 +559,7 @@ Format:
                     const err = await response.json();
                     aiStatus.innerText = "OpenAI Error: " + (err.error?.message || "Check API Key/Quota");
                     chatHistoryOpenAI.pop();
+                    resetMicButton();   // ✅ Button reset on API failure
                     return;
                 }
 
@@ -553,10 +578,12 @@ Format:
                 }
 
                 handleSuccess(JSON.parse(content));
+                resetMicButton();   // ✅ Button reset on success
 
             } catch (error) {
                 aiStatus.innerText = "OpenAI Fail: " + error.message;
                 chatHistoryOpenAI.pop();
+                resetMicButton();   // ✅ Button reset on exception
             }
         }
 
@@ -570,7 +597,6 @@ Format:
             if (window.CarBridge && typeof window.CarBridge.speakText === 'function') {
                 window.CarBridge.speakText(aiReply);
             } else {
-                // Fallback for browser testing
                 speakBrowser(aiReply);
             }
 
@@ -589,7 +615,7 @@ Format:
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'hi-IN';
             utterance.rate = 0.9;
-            utterance.pitch = 1.05;
+            utterance.pitch = 1.0;
             window.speechSynthesis.speak(utterance);
         }
     </script>
