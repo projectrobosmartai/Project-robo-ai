@@ -332,7 +332,7 @@
         }
 
         // ============================================================
-        // --- 🎙 Mic Button Reset Helper (FIX) ---
+        // --- 🎙 Mic Button Reset Helper (UI FIX) ---
         // ============================================================
         function resetMicButton() {
             // Agar live mode ON hai, toh button "Stop (Live ON)" red state mein hi rahega
@@ -346,14 +346,17 @@
         }
 
         // ============================================================
-        // --- Updated System Prompt (Devanagari-Only Reply) ---
+        // --- 🔥 UPDATED System Prompt (Devanagari STRICT) ---
         // ============================================================
-        const systemPrompt = `Ab tum ek AI nahi, balki ek chill aur casual human dost ho jo ek smart RC car ka mechanic/driver bhi hai. Tumhari memory active hai, tum pichli baatein yaad rakhte ho. User ko mazaak mein 'Sahab' bula sakte ho, par baar-baar ek hi word mat ratna.
+        const systemPrompt = `Ab tum ek AI nahi, balki ek chill aur casual human dost ho jo ek smart RC car ka mechanic/driver bhi hai. Tumhari memory active hai, tum pichli baatein yaad rakhte ho. User ko mazaak mein 'साहब' bula sakte ho, par baar-baar ek hi word mat ratna.
 
-RULES:
-1. TUMHARI BAATEIN (reply_text) SIRF AUR SIRF DEVANAGARI SCRIPT (हिंदी) MEIN HONI CHAHIYE. Latin alphabet (English/Hinglish letters) ka use BILKUL NAHI karna. Udaharan: "अरे साहब, किधर जाना है?" - aisa natural Hindi text.
-2. Action code hamesha English mein rahega (jaise FWD:5000:2). Sirf reply_text Devanagari mein hoga.
-3. Har baat par 'गाड़ी' ya 'कार' का ज़िक्र मत करो. Agar user आम बातें करे (जैसे "क्या हाल है?"), तो एक normal दोस्त की तरह chill reply दो बिना गाड़ी को बीच में लाए.
+RULES (STRICT - INAMUST FOLLOW):
+1. TUMHARA reply_text HAMESHA 100% DEVANAGARI SCRIPT (हिंदी अक्षरों) में होगा. Kisi bhi haal mein English alphabets ya Hinglish (jaise 'Arey Sahab', 'Done', 'OK') use NAHI karna. 
+   Example valid: "अरे साहब, बताइए कहाँ चलना है?"
+   Example valid: "ठीक है साहब, गाड़ी आगे बढ़ा रहा हूँ"
+   Example INVALID (mat karo): "Arey sahab, aage badha raha hu"
+2. Action code (action_code) hamesha ENGLISH mein rahega (jaise FWD:5000:2). Sirf reply_text Devanagari mein hoga.
+3. Har baat par 'गाड़ी' ya 'कार' का ज़िक्र मत करो. Agar user आम बातें करे (जैसे "क्या हाल है?"), तो एक normal दोस्त की तरह chill Devanagari reply दो बिना गाड़ी को बीच में लाए.
 4. Agar user car ko chalane bole bina details ke (jaise "आगे बढ़ाओ"), toh casual tone me cross-question karo ki कितना आगे ya कितनी speed.
 5. Agar proper car command mile (jaise "5 second आगे जाओ"), toh action code generate karo aur chill Devanagari reply do ("ठीक है साहब, गाड़ी आगे बढ़ा रहा हूँ").
 6. Koi bookish Hindi (jaise 'प्रतीक्षा', 'कृपया') use mat karna. Ekdum natural aur desi vibe rakho.
@@ -440,7 +443,7 @@ Format:
             } catch (e) {
                 console.error("receiveVoiceInput error:", e);
             } finally {
-                // ✅ ALWAYS reset button state after processing (unless live mode)
+                // ✅ Button reset after processing
                 resetMicButton();
             }
         };
@@ -452,6 +455,8 @@ Format:
                 } else {
                     await callOpenAI(userInput, apiKey);
                 }
+            } catch (e) {
+                console.error("routeAI error:", e);
             } finally {
                 // ✅ Final safety net — button reset on any path
                 resetMicButton();
@@ -496,7 +501,10 @@ Format:
 
                         aiStatus.innerText = "Gemini Error: " + errMsg;
                         chatHistoryGemini.pop();
-                        resetMicButton();   // ✅ Button reset on API failure
+                        // ✅ Reset mic button on API error
+                        document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
+                        document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+                        resetMicButton();
                         return;
                     }
 
@@ -512,7 +520,7 @@ Format:
                     }
 
                     handleSuccess(JSON.parse(rawJson));
-                    resetMicButton();   // ✅ Button reset on success
+                    resetMicButton();
                     return;
 
                 } catch (error) {
@@ -522,7 +530,10 @@ Format:
                     }
                     aiStatus.innerText = "Gemini Fail: " + error.message;
                     chatHistoryGemini.pop();
-                    resetMicButton();   // ✅ Button reset on exception
+                    // ✅ Reset mic button on exception
+                    document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
+                    document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+                    resetMicButton();
                 }
             }
         }
@@ -559,7 +570,10 @@ Format:
                     const err = await response.json();
                     aiStatus.innerText = "OpenAI Error: " + (err.error?.message || "Check API Key/Quota");
                     chatHistoryOpenAI.pop();
-                    resetMicButton();   // ✅ Button reset on API failure
+                    // ✅ Reset mic button on API error
+                    document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
+                    document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+                    resetMicButton();
                     return;
                 }
 
@@ -578,12 +592,15 @@ Format:
                 }
 
                 handleSuccess(JSON.parse(content));
-                resetMicButton();   // ✅ Button reset on success
+                resetMicButton();
 
             } catch (error) {
                 aiStatus.innerText = "OpenAI Fail: " + error.message;
                 chatHistoryOpenAI.pop();
-                resetMicButton();   // ✅ Button reset on exception
+                // ✅ Reset mic button on exception
+                document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
+                document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+                resetMicButton();
             }
         }
 
@@ -606,6 +623,11 @@ Format:
                 document.getElementById('codeInput').value = aiData.action_code.trim();
                 document.getElementById('aiStatus').innerText += "\n✅ Command Generated! UNO ko bhejo.";
             }
+
+            // ✅ Reset mic button after successful response
+            document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
+            document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+            resetMicButton();
         }
 
         // Fallback TTS logic if running outside app
