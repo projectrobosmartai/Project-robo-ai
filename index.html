@@ -157,7 +157,6 @@
                 <div class="screen" id="screenEditor">
                     <h2 class="title">Command Center</h2>
 
-                    <!-- AI Toggle Selector — Groq default -->
                     <div class="toggle-container">
                         <button class="toggle-btn active" id="btnSelectGroq" onclick="switchAI('groq')">⚡ Groq</button>
                         <button class="toggle-btn" id="btnSelectGemini" onclick="switchAI('gemini')">Gemini</button>
@@ -245,10 +244,12 @@
             const np = document.getElementById('navPreview');
             if (index === 0) {
                 slider.style.transform = 'translateX(0vw)';
-                ne.classList.add('active'); np.classList.remove('active');
+                ne.classList.add('active');
+                np.classList.remove('active');
             } else {
                 slider.style.transform = 'translateX(-100vw)';
-                np.classList.add('active'); ne.classList.remove('active');
+                np.classList.add('active');
+                ne.classList.remove('active');
             }
         }
 
@@ -349,7 +350,7 @@ TUMHARA RESPONSE HAMESHA EK STRICT JSON FORMAT ME HONA CHAHIYE:
                         'Authorization': 'Bearer ' + apiKey
                     },
                     body: JSON.stringify({
-                        model: 'llama-3.1-8b-instant',
+                        model: 'llama3-8b-8192',
                         messages: messagesPayload,
                         temperature: 0.7,
                         max_tokens: 100,
