@@ -12,7 +12,6 @@
             color: #ffffff;
             overflow: hidden;
         }
-
         #homeScreen {
             position: absolute;
             top: 0; left: 0;
@@ -26,7 +25,6 @@
             box-sizing: border-box;
         }
         .home-title { font-size: 28px; font-weight: bold; margin-bottom: 40px; color: #f8fafc; }
-
         .device-card {
             background: linear-gradient(135deg, #1e3a8a, #3b82f6);
             width: 80%;
@@ -40,9 +38,7 @@
             transition: transform 0.2s;
         }
         .device-card:active { transform: scale(0.95); }
-
         #mainApp { display: none; width: 100vw; height: 100vh; }
-
         .header {
             background: rgba(15, 23, 42, 0.7);
             backdrop-filter: blur(10px);
@@ -52,15 +48,7 @@
             justify-content: space-between;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .back-btn {
-            background: none;
-            border: none;
-            color: #38bdf8;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
+        .back-btn { background: none; border: none; color: #38bdf8; font-size: 16px; font-weight: 600; cursor: pointer; }
         .refresh-btn {
             background: rgba(56, 189, 248, 0.15);
             border: 1px solid rgba(56, 189, 248, 0.3);
@@ -72,27 +60,10 @@
             cursor: pointer;
         }
         .refresh-btn:active { background: rgba(56, 189, 248, 0.35); }
-
-        .viewport {
-            width: 100vw;
-            height: calc(100vh - 120px);
-            overflow: hidden;
-            position: relative;
-        }
-        .slider {
-            display: flex;
-            width: 200vw;
-            height: 100%;
-            transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        .screen {
-            width: 100vw; height: 100%;
-            padding: 20px; box-sizing: border-box;
-            overflow-y: auto;
-        }
-
+        .viewport { width: 100vw; height: calc(100vh - 120px); overflow: hidden; position: relative; }
+        .slider { display: flex; width: 200vw; height: 100%; transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
+        .screen { width: 100vw; height: 100%; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .title { margin-top: 0; font-size: 22px; font-weight: 600; color: #f1f5f9; }
-
         .toggle-container {
             display: flex;
             background: rgba(30, 41, 59, 0.7);
@@ -113,11 +84,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .toggle-btn.active {
-            background: #2563eb;
-            color: #ffffff;
-        }
-
+        .toggle-btn.active { background: #2563eb; color: #ffffff; }
         textarea {
             width: 100%; height: 160px;
             background: rgba(30, 41, 59, 0.6);
@@ -127,14 +94,12 @@
             box-sizing: border-box; resize: none;
             margin-bottom: 15px;
         }
-
         .btn-upload {
             background: linear-gradient(135deg, #0284c7, #2563eb);
             border: none; padding: 16px; width: 100%;
             border-radius: 12px; color: white; font-weight: bold;
             font-size: 16px; cursor: pointer;
         }
-
         .btn-ai-mic {
             background: linear-gradient(135deg, #8b5cf6, #6d28d9);
             border: none; padding: 16px; width: 100%;
@@ -144,7 +109,6 @@
             transition: all 0.25s ease;
         }
         .btn-ai-mic:active { transform: scale(0.97); }
-
         .fab-camera {
             position: fixed; bottom: 80px; right: 20px;
             background: linear-gradient(135deg, #ef4444, #dc2626);
@@ -152,14 +116,12 @@
             display: flex; justify-content: center; align-items: center;
             border: none; font-size: 24px; cursor: pointer;
         }
-
         .preview-box {
             background: rgba(30, 41, 59, 0.4);
             border: 1px dashed rgba(255, 255, 255, 0.2);
             border-radius: 12px; height: 250px;
             display: flex; align-items: center; justify-content: center; flex-direction: column;
         }
-
         .bottom-nav {
             position: fixed; bottom: 0; width: 100vw; height: 60px;
             display: flex; background: rgba(15, 23, 42, 0.95);
@@ -175,7 +137,6 @@
 </head>
 <body>
 
-    <!-- SCREEN 1: Home Screen -->
     <div id="homeScreen">
         <button class="refresh-btn" style="align-self: flex-end; margin-right: 20px;" onclick="refreshApp()">🔄 Refresh</button>
         <div class="home-title">Select Your Device</div>
@@ -184,7 +145,6 @@
         </div>
     </div>
 
-    <!-- MAIN APP -->
     <div id="mainApp">
         <div class="header">
             <button class="back-btn" onclick="goBackToHome()">← Back to Devices</button>
@@ -194,30 +154,27 @@
         <div class="viewport">
             <div class="slider" id="appSlider">
 
-                <!-- Screen: Code Editor / AI Control -->
                 <div class="screen" id="screenEditor">
                     <h2 class="title">Command Center</h2>
 
-                    <!-- AI Toggle Selector -->
+                    <!-- AI Toggle Selector — Groq default -->
                     <div class="toggle-container">
-                        <button class="toggle-btn active" id="btnSelectOpenRouter" onclick="switchAI('openrouter')">🌐 OpenRouter</button>
+                        <button class="toggle-btn active" id="btnSelectGroq" onclick="switchAI('groq')">⚡ Groq</button>
                         <button class="toggle-btn" id="btnSelectGemini" onclick="switchAI('gemini')">Gemini</button>
                         <button class="toggle-btn" id="btnSelectOpenAI" onclick="switchAI('openai')">OpenAI</button>
                     </div>
 
-                    <input type="password" id="apiKeyInput" placeholder="Paste OpenRouter API Key (sk-or-...)" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: white; box-sizing: border-box;">
+                    <input type="password" id="apiKeyInput" placeholder="Paste Groq API Key (gsk_...)" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: white; box-sizing: border-box;">
 
                     <textarea id="codeInput" placeholder="AI command yahan aayegi ya manually type karo..."></textarea>
 
                     <button class="btn-upload" onclick="sendCode()">▶ Upload to UNO</button>
 
-                    <!-- 🎙 MERGED SINGLE BUTTON — Talk to Sahab -->
                     <button class="btn-ai-mic" id="aiMainBtn" onclick="toggleLiveChat()">🎙 Talk to Sahab</button>
 
                     <p id="aiStatus" style="color: #38bdf8; font-size: 14px; text-align: center; margin-top: 10px; white-space: pre-line;"></p>
                 </div>
 
-                <!-- Screen: 2D Preview -->
                 <div class="screen" id="screenPreview">
                     <h2 class="title">2D Path Validation</h2>
                     <div class="preview-box">
@@ -238,58 +195,40 @@
     </div>
 
     <script>
-        // ============================================================
-        // --- AI Selection State & Memory System ---
-        // ============================================================
-        let selectedAI = 'openrouter';   // ✅ default OpenRouter
+        let selectedAI = 'groq';
         let liveChatActive = false;
-
-        // Independent memory for each provider
-        let chatHistoryOpenRouter = [];
+        let chatHistoryGroq = [];
         let chatHistoryGemini = [];
         let chatHistoryOpenAI = [];
 
-        // ============================================================
-        // --- Provider Switcher (fully independent) ---
-        // ============================================================
         function switchAI(provider) {
             selectedAI = provider;
+            const gq = document.getElementById('btnSelectGroq');
+            const g = document.getElementById('btnSelectGemini');
+            const o = document.getElementById('btnSelectOpenAI');
+            const k = document.getElementById('apiKeyInput');
 
-            const orBtn = document.getElementById('btnSelectOpenRouter');
-            const gemBtn = document.getElementById('btnSelectGemini');
-            const oaiBtn = document.getElementById('btnSelectOpenAI');
-            const keyInput = document.getElementById('apiKeyInput');
+            gq.classList.remove('active');
+            g.classList.remove('active');
+            o.classList.remove('active');
 
-            // Reset all active states
-            orBtn.classList.remove('active');
-            gemBtn.classList.remove('active');
-            oaiBtn.classList.remove('active');
-
-            if (provider === 'openrouter') {
-                orBtn.classList.add('active');
-                keyInput.placeholder = "Paste OpenRouter API Key (sk-or-...)";
+            if (provider === 'groq') {
+                gq.classList.add('active');
+                k.placeholder = "Paste Groq API Key (gsk_...)";
             } else if (provider === 'gemini') {
-                gemBtn.classList.add('active');
-                keyInput.placeholder = "Paste Gemini API Key (AIzaSy...)";
+                g.classList.add('active');
+                k.placeholder = "Paste Gemini API Key (AIzaSy...)";
             } else {
-                oaiBtn.classList.add('active');
-                keyInput.placeholder = "Paste OpenAI API Key (sk-...)";
+                o.classList.add('active');
+                k.placeholder = "Paste OpenAI API Key (sk-...)";
             }
-
-            console.log('[AI] Switched to:', selectedAI);
         }
 
-        // ============================================================
-        // --- Refresh WebView Logic ---
-        // ============================================================
         function refreshApp() {
             const cleanUrl = window.location.origin + window.location.pathname;
             window.location.href = cleanUrl + '?t=' + new Date().getTime();
         }
 
-        // ============================================================
-        // --- Navigation ---
-        // ============================================================
         function openCarController() {
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
@@ -302,104 +241,63 @@
 
         function slideTo(index) {
             const slider = document.getElementById('appSlider');
-            const navEditor = document.getElementById('navEditor');
-            const navPreview = document.getElementById('navPreview');
-
+            const ne = document.getElementById('navEditor');
+            const np = document.getElementById('navPreview');
             if (index === 0) {
                 slider.style.transform = 'translateX(0vw)';
-                navEditor.classList.add('active');
-                navPreview.classList.remove('active');
+                ne.classList.add('active'); np.classList.remove('active');
             } else {
                 slider.style.transform = 'translateX(-100vw)';
-                navPreview.classList.add('active');
-                navEditor.classList.remove('active');
+                np.classList.add('active'); ne.classList.remove('active');
             }
         }
 
-        // ============================================================
-        // --- Hardware Bridge ---
-        // ============================================================
         function sendCode() {
             const code = document.getElementById('codeInput').value.trim();
-            if (!code) {
-                alert("Pehle koi command likho sahab!");
-                return;
-            }
-
-            if (window.CarBridge && typeof window.CarBridge.sendCommand === 'function') {
+            if (!code) { alert("Pehle koi command likho sahab!"); return; }
+            if (window.CarBridge && window.CarBridge.sendCommand) {
                 window.CarBridge.sendCommand(code);
             } else {
-                alert("Testing in Browser: " + code);
+                alert("Testing: " + code);
             }
-
             document.getElementById('previewStatus').innerText = "Path Validated ✅\nCommand: " + code;
             document.getElementById('previewStatus').style.color = "#10b981";
             setTimeout(() => slideTo(1), 300);
         }
 
         function openCamera() {
-            if (window.CarBridge && typeof window.CarBridge.openCamera === 'function') {
-                window.CarBridge.openCamera();
-            } else {
-                alert("Camera sirf Android app mein open hoga.");
-            }
+            if (window.CarBridge && window.CarBridge.openCamera) window.CarBridge.openCamera();
+            else alert("Camera sirf Android app mein.");
         }
 
-        // ============================================================
-        // --- 🎙 Mic Button Reset Helper ---
-        // (respects live mode — does nothing if live is ON)
-        // ============================================================
-        function resetMicButton() {
-            if (liveChatActive) return;   // don't touch button during live mode
-
+        function resetMicBtn() {
+            if (liveChatActive) return;
             const btn = document.getElementById('aiMainBtn');
             if (!btn) return;
             btn.innerText = "🎙 Talk to Sahab";
             btn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
-            btn.style.boxShadow = "0 4px 15px rgba(109, 40, 217, 0.4)";
         }
 
-        // ============================================================
-        // --- System Prompt (STRICT Devanagari for TTS) ---
-        // ============================================================
-        const systemPrompt = `Ab tum ek AI nahi, balki ek chill aur casual human dost ho jo ek smart RC car ka mechanic/driver bhi hai. Tumhari memory active hai, tum pichli baatein yaad rakhte ho. User ko mazaak mein 'साहब' bula sakte ho, par baar-baar ek hi word mat ratna.
+        const systemPrompt = `Ab tum ek AI nahi, balki ek chill aur casual human dost ho jo ek smart RC car ka mechanic/driver bhi hai. Tumhari memory active hai. RULES (STRICT): 1. TUMHARA reply_text HAMESHA 100% DEVANAGARI SCRIPT (हिंदी अक्षरों) में होगा. Kisi bhi haal mein English alphabets ya Hinglish (jaise Arey Sahab, Done, OK) use NAHI karna. Example valid: "अरे साहब, बताइए कहाँ चलना है?" Example INVALID: "Arey sahab, aage badha raha hu". 2. Action code hamesha ENGLISH mein (jaise FWD:5000:2). 3. Har baat par gaadi ka zikra mat karo. Aam baat cheet mein normal dost ki tarah reply do. 4. Bina details ke car command pe cross-question karo. 5. Bookish Hindi use mat karna.
 
-RULES (STRICT - MUST FOLLOW):
-1. TUMHARA reply_text HAMESHA 100% DEVANAGARI SCRIPT (हिंदी अक्षरों) में होगा. Kisi bhi haal mein English alphabets ya Hinglish (jaise 'Arey Sahab', 'Done', 'OK') use NAHI karna.
-   Example valid: "अरे साहब, बताइए कहाँ चलना है?"
-   Example valid: "ठीक है साहब, गाड़ी आगे बढ़ा रहा हूँ"
-   Example INVALID (mat karo): "Arey sahab, aage badha raha hu"
-2. Action code (action_code) hamesha ENGLISH mein rahega (jaise FWD:5000:2). Sirf reply_text Devanagari mein hoga.
-3. Har baat par 'गाड़ी' ya 'कार' का ज़िक्र मत करो. Agar user आम बातें करे (जैसे "क्या हाल है?"), तो एक normal दोस्त की तरह chill Devanagari reply दो बिना गाड़ी को बीच में लाए.
-4. Agar user car ko chalane bole bina details ke (jaise "आगे बढ़ाओ"), toh casual tone me cross-question karo ki कितना आगे ya कितनी speed.
-5. Agar proper car command mile (jaise "5 second आगे जाओ"), toh action code generate karo aur chill Devanagari reply do ("ठीक है साहब, गाड़ी आगे बढ़ा रहा हूँ").
-6. Koi bookish Hindi (jaise 'प्रतीक्षा', 'कृपया') use mat karna. Ekdum natural aur desi vibe rakho.
-
-TUMHARA RESPONSE HAMESHA EK STRICT JSON FORMAT ME HONA CHAHIYE. Koi aur extra text mat likhna.
-Format:
+TUMHARA RESPONSE HAMESHA EK STRICT JSON FORMAT ME HONA CHAHIYE:
 {
-    "reply_text": "सिर्फ देवनागरी में natural Hindi reply (कोई English letter नहीं)",
-    "action_code": "Action Code sirf English mein (jaise FWD:5000:2 ya BWD:3000:1) ya invalid ho toh khali string ''"
+    "reply_text": "सिर्फ देवनागरी में reply",
+    "action_code": "English action ya khali string ''"
 }`;
 
-        // ============================================================
-        // --- 🎙 MERGED SINGLE BUTTON: Talk to Sahab (Live Mode) ---
-        // ============================================================
         function toggleLiveChat() {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
             if (!apiKey) {
-                const providerName = selectedAI === 'openrouter' ? 'OpenRouter'
-                                   : selectedAI === 'gemini' ? 'Gemini' : 'OpenAI';
-                alert(`Pehle ${providerName} API Key daalo sahab!`);
+                const pName = selectedAI === 'groq' ? 'Groq' : (selectedAI === 'gemini' ? 'Gemini' : 'OpenAI');
+                alert(`Pehle ${pName} API Key daalo sahab!`);
                 return;
             }
-
             const btn = document.getElementById('aiMainBtn');
             const st = document.getElementById('aiStatus');
 
             if (!window.CarBridge || typeof window.CarBridge.startLiveListening !== 'function') {
-                // browser fallback
-                const typed = prompt("Android app nahi mili. Command type karo (Sahab):");
+                const typed = prompt("Android app nahi mili. Command type karo:");
                 if (typed && typed.trim()) routeAI(typed.trim(), apiKey);
                 return;
             }
@@ -409,222 +307,135 @@ Format:
                 window.CarBridge.stopLiveListening();
                 btn.innerText = "🎙 Talk to Sahab";
                 btn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
-                btn.style.boxShadow = "0 4px 15px rgba(109, 40, 217, 0.4)";
-                st.innerText = "⏹ Band ho gaya sahab.";
+                st.innerText = "⏹ Band ho gaya.";
             } else {
                 liveChatActive = true;
                 window.CarBridge.startLiveListening();
                 btn.innerText = "⏹ Stop (Live ON)";
                 btn.style.background = "linear-gradient(135deg, #ef4444, #b91c1c)";
-                btn.style.boxShadow = "0 4px 15px rgba(239, 68, 68, 0.4)";
-                st.innerText = "🔴 Live ON — bolo sahab!";
+                st.innerText = "🔴 Live — bolo sahab!";
             }
         }
 
-        // ============================================================
-        // --- Voice Input Callback ---
-        // ============================================================
         window.receiveVoiceInput = async function(spokenText) {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
-            const aiStatus = document.getElementById('aiStatus');
-            const micBtn = document.getElementById('aiMainBtn');
-
-            aiStatus.innerText = `Aapne bola: "${spokenText}"\nSoch raha hu...`;
-
-            if (!liveChatActive && micBtn) {
-                micBtn.innerText = "⏳ Processing...";
-                micBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
-                micBtn.style.boxShadow = "0 4px 15px rgba(245, 158, 11, 0.4)";
-            }
-
-            try {
-                await routeAI(spokenText, apiKey);
-            } catch (e) {
-                console.error("receiveVoiceInput error:", e);
-            } finally {
-                resetMicButton();
-            }
+            const st = document.getElementById('aiStatus');
+            if (st) st.innerText = `Aapne bola: "${spokenText}"\nSoch raha hu...`;
+            try { await routeAI(spokenText, apiKey); }
+            catch (e) { console.error('receiveVoiceInput', e); }
+            finally { resetMicBtn(); }
         };
 
-        // ============================================================
-        // --- Router (independent paths) ---
-        // ============================================================
         async function routeAI(userInput, apiKey) {
-            console.log('[Router] selectedAI =', selectedAI);
+            try {
+                if (selectedAI === 'groq') await callGroqAPI(userInput, apiKey);
+                else if (selectedAI === 'gemini') await callGemini(userInput, apiKey);
+                else await callOpenAI(userInput, apiKey);
+            } catch (e) { console.error('routeAI', e); }
+            finally { resetMicBtn(); }
+        }
+
+        // ⚡ GROQ API
+        async function callGroqAPI(userInput, apiKey) {
+            const st = document.getElementById('aiStatus');
+            chatHistoryGroq.push({ role: "user", content: userInput });
+            const messagesPayload = [{ role: "system", content: systemPrompt }, ...chatHistoryGroq];
 
             try {
-                if (selectedAI === 'openrouter') {
-                    await callOpenRouterAPI(userInput, apiKey);
-                } else if (selectedAI === 'gemini') {
-                    await callGemini(userInput, apiKey);
-                } else if (selectedAI === 'openai') {
-                    await callOpenAI(userInput, apiKey);
-                } else {
-                    console.error('[Router] Unknown provider:', selectedAI);
-                }
-            } catch (e) {
-                console.error("routeAI error:", e);
-            } finally {
-                resetMicButton();
-            }
-        }
-
-        // ============================================================
-        // --- 🌐 1. OpenRouter API ---
-        // ============================================================
-        async function callOpenRouterAPI(userInput, apiKey, retries = 2) {
-            const aiStatus = document.getElementById('aiStatus');
-            const url = 'https://openrouter.ai/api/v1/chat/completions';
-
-            chatHistoryOpenRouter.push({ role: "user", content: userInput });
-
-            const messagesPayload = [
-                { role: "system", content: systemPrompt },
-                ...chatHistoryOpenRouter
-            ];
-
-            for (let i = 0; i <= retries; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + apiKey,
-                            'HTTP-Referer': 'https://localhost',
-                            'X-Title': 'RC Car Controller'
-                        },
-                        body: JSON.stringify({
-                            model: "meta-llama/llama-3.1-8b-instruct:free",
-                            messages: messagesPayload,
-                            temperature: 0.7,
-                            max_tokens: 200,
-                            response_format: { type: "json_object" }
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const err = await response.json();
-                        const errMsg = err.error?.message || "Unknown OpenRouter Error";
-
-                        if (response.status === 503 || response.status === 429) {
-                            if (i < retries) {
-                                aiStatus.innerText = `Server busy... Retrying (${i + 1}/${retries})...`;
-                                await new Promise(r => setTimeout(r, 800));
-                                continue;
-                            }
-                        }
-
-                        aiStatus.innerText = "🌐 OpenRouter Error: " + errMsg;
-                        chatHistoryOpenRouter.pop();
-                        resetMicButton();
-                        return;
-                    }
-
-                    const data = await response.json();
-                    let content = data.choices[0].message.content;
-
-                    if (content.includes('```json')) {
-                        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-                    }
-
-                    chatHistoryOpenRouter.push({ role: "assistant", content: content });
-                    if (chatHistoryOpenRouter.length > 10) {
-                        chatHistoryOpenRouter = chatHistoryOpenRouter.slice(chatHistoryOpenRouter.length - 10);
-                    }
-
-                    handleSuccess(JSON.parse(content));
+                const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + apiKey
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.1-8b-instant',
+                        messages: messagesPayload,
+                        temperature: 0.7,
+                        max_tokens: 100,
+                        response_format: { type: "json_object" }
+                    })
+                });
+                if (!r.ok) {
+                    const e = await r.json();
+                    st.innerText = "Groq Error: " + (e.error?.message || "Check API Key");
+                    chatHistoryGroq.pop();
+                    resetMicBtn();
                     return;
-
-                } catch (error) {
-                    if (i < retries) {
-                        await new Promise(r => setTimeout(r, 800));
-                        continue;
-                    }
-                    aiStatus.innerText = "🌐 OpenRouter Fail: " + error.message;
-                    chatHistoryOpenRouter.pop();
-                    resetMicButton();
                 }
+                const d = await r.json();
+                let c = d.choices[0].message.content;
+                if (c.includes('```json')) c = c.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                let parsed;
+                try { parsed = JSON.parse(c); }
+                catch (pe) { st.innerText = "Groq Parse Fail: " + pe.message; resetMicBtn(); return; }
+
+                chatHistoryGroq.push({ role: "assistant", content: c });
+                if (chatHistoryGroq.length > 10) chatHistoryGroq = chatHistoryGroq.slice(-10);
+
+                handleSuccess(parsed);
+            } catch (e) {
+                st.innerText = "Groq Fail: " + e.message;
+                chatHistoryGroq.pop();
+                resetMicBtn();
             }
         }
 
-        // ============================================================
-        // --- 2. Google Gemini API ---
-        // ============================================================
-        async function callGemini(userInput, apiKey, retries = 2) {
-            const aiStatus = document.getElementById('aiStatus');
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
+        // GEMINI
+        async function callGemini(userInput, apiKey) {
+            const st = document.getElementById('aiStatus');
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`;
             chatHistoryGemini.push({ role: "user", parts: [{ text: userInput }] });
 
-            for (let i = 0; i <= retries; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            system_instruction: { parts: [{ text: systemPrompt }] },
-                            contents: chatHistoryGemini,
-                            generationConfig: { response_mime_type: "application/json" }
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const err = await response.json();
-                        const errMsg = err.error?.message || "Unknown API Error";
-
-                        if (response.status === 503 || response.status === 429 ||
-                            errMsg.toLowerCase().includes("high demand")) {
-                            if (i < retries) {
-                                aiStatus.innerText = `Server busy... Retrying (${i + 1}/${retries})...`;
-                                await new Promise(r => setTimeout(r, 1000));
-                                continue;
-                            }
+            try {
+                const r = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        system_instruction: { parts: [{ text: systemPrompt }] },
+                        contents: chatHistoryGemini,
+                        generationConfig: {
+                            response_mime_type: "application/json",
+                            maxOutputTokens: 100,
+                            temperature: 0.5
                         }
-
-                        aiStatus.innerText = "🔷 Gemini Error: " + errMsg;
-                        chatHistoryGemini.pop();
-                        resetMicButton();
-                        return;
-                    }
-
-                    const data = await response.json();
-                    const rawJson = data.candidates[0].content.parts[0].text;
-
-                    chatHistoryGemini.push({ role: "model", parts: [{ text: rawJson }] });
-                    if (chatHistoryGemini.length > 10) {
-                        chatHistoryGemini = chatHistoryGemini.slice(chatHistoryGemini.length - 10);
-                    }
-
-                    handleSuccess(JSON.parse(rawJson));
-                    return;
-
-                } catch (error) {
-                    if (i < retries) {
-                        await new Promise(r => setTimeout(r, 1000));
-                        continue;
-                    }
-                    aiStatus.innerText = "🔷 Gemini Fail: " + error.message;
+                    })
+                });
+                if (!r.ok) {
+                    const e = await r.json();
+                    st.innerText = "Gemini Error: " + (e.error?.message || "Check API Key");
                     chatHistoryGemini.pop();
-                    resetMicButton();
+                    resetMicBtn();
+                    return;
                 }
+                const d = await r.json();
+                let raw = d.candidates[0].content.parts[0].text;
+                if (raw.includes('```json')) raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                let parsed;
+                try { parsed = JSON.parse(raw); }
+                catch (pe) { st.innerText = "Gemini Parse Fail: " + pe.message; resetMicBtn(); return; }
+
+                chatHistoryGemini.push({ role: "model", parts: [{ text: raw }] });
+                if (chatHistoryGemini.length > 10) chatHistoryGemini = chatHistoryGemini.slice(-10);
+
+                handleSuccess(parsed);
+            } catch (e) {
+                st.innerText = "Gemini Fail: " + e.message;
+                chatHistoryGemini.pop();
+                resetMicBtn();
             }
         }
 
-        // ============================================================
-        // --- 3. OpenAI GPT API ---
-        // ============================================================
+        // OPENAI
         async function callOpenAI(userInput, apiKey) {
-            const aiStatus = document.getElementById('aiStatus');
-
+            const st = document.getElementById('aiStatus');
             chatHistoryOpenAI.push({ role: "user", content: userInput });
-
-            const messagesPayload = [
-                { role: "system", content: systemPrompt },
-                ...chatHistoryOpenAI
-            ];
+            const messagesPayload = [{ role: "system", content: systemPrompt }, ...chatHistoryOpenAI];
 
             try {
-                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                const r = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -633,68 +444,56 @@ Format:
                     body: JSON.stringify({
                         model: "gpt-4o-mini",
                         messages: messagesPayload,
-                        temperature: 0.7
+                        temperature: 0.7,
+                        max_tokens: 100,
+                        response_format: { type: "json_object" }
                     })
                 });
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    aiStatus.innerText = "🟢 OpenAI Error: " + (err.error?.message || "Check API Key/Quota");
+                if (!r.ok) {
+                    const e = await r.json();
+                    st.innerText = "OpenAI Error: " + (e.error?.message || "Check API Key");
                     chatHistoryOpenAI.pop();
-                    resetMicButton();
+                    resetMicBtn();
                     return;
                 }
+                const d = await r.json();
+                let c = d.choices[0].message.content;
+                if (c.includes('```json')) c = c.replace(/```json/g, '').replace(/```/g, '').trim();
 
-                const data = await response.json();
-                let content = data.choices[0].message.content;
-                if (content.includes('```json')) {
-                    content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-                }
+                let parsed;
+                try { parsed = JSON.parse(c); }
+                catch (pe) { st.innerText = "OpenAI Parse Fail: " + pe.message; resetMicBtn(); return; }
 
-                chatHistoryOpenAI.push({ role: "assistant", content: content });
-                if (chatHistoryOpenAI.length > 10) {
-                    chatHistoryOpenAI = chatHistoryOpenAI.slice(chatHistoryOpenAI.length - 10);
-                }
+                chatHistoryOpenAI.push({ role: "assistant", content: c });
+                if (chatHistoryOpenAI.length > 10) chatHistoryOpenAI = chatHistoryOpenAI.slice(-10);
 
-                handleSuccess(JSON.parse(content));
-
-            } catch (error) {
-                aiStatus.innerText = "🟢 OpenAI Fail: " + error.message;
+                handleSuccess(parsed);
+            } catch (e) {
+                st.innerText = "OpenAI Fail: " + e.message;
                 chatHistoryOpenAI.pop();
-                resetMicButton();
+                resetMicBtn();
             }
         }
 
-        // ============================================================
-        // --- Response Handler & Native TTS ---
-        // ============================================================
         function handleSuccess(aiData) {
-            const aiReply = aiData.reply_text || "Done.";
-
-            if (window.CarBridge && typeof window.CarBridge.speakText === 'function') {
-                window.CarBridge.speakText(aiReply);
-            } else {
-                speakBrowser(aiReply);
-            }
-
-            document.getElementById('aiStatus').innerText = `AI: ${aiReply}`;
-
-            if (aiData.action_code && aiData.action_code.trim() !== "") {
-                document.getElementById('codeInput').value = aiData.action_code.trim();
-                document.getElementById('aiStatus').innerText += "\n✅ Command Generated! UNO ko bhejo.";
-            }
-
-            resetMicButton();
-        }
-
-        function speakBrowser(text) {
-            if (!window.speechSynthesis) return;
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'hi-IN';
-            utterance.rate = 0.9;
-            utterance.pitch = 1.0;
-            window.speechSynthesis.speak(utterance);
+            try {
+                if (!aiData || typeof aiData !== 'object') throw new Error("Empty AI data");
+                const aiReply = aiData.reply_text || "Done.";
+                if (window.CarBridge && typeof window.CarBridge.speakText === 'function') {
+                    window.CarBridge.speakText(aiReply);
+                } else if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    const u = new SpeechSynthesisUtterance(aiReply);
+                    u.lang = 'hi-IN'; u.rate = 0.9; u.pitch = 1.05;
+                    window.speechSynthesis.speak(u);
+                }
+                document.getElementById('aiStatus').innerText = `AI: ${aiReply}`;
+                if (aiData.action_code && aiData.action_code.trim() !== "") {
+                    document.getElementById('codeInput').value = aiData.action_code.trim();
+                    document.getElementById('aiStatus').innerText += "\n✅ Command Generated!";
+                }
+            } catch (e) { console.error('handleSuccess', e); }
+            finally { resetMicBtn(); }
         }
     </script>
 </body>
