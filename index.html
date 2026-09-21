@@ -385,11 +385,11 @@ Format:
         }
 
         // ============================================================
-        // --- 1. Google Gemini API (Updated to Stable Model) ---
+        // --- 1. Google Gemini API (Updated to gemini-3.6-flash) ---
         // ============================================================
         async function callGemini(userInput, apiKey) {
             const aiStatus = document.getElementById('aiStatus');
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
             try {
                 const response = await fetch(url, {
