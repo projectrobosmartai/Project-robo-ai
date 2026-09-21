@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Wireless Controller</title>
+    <style>
+        /* Basic App Styling */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212; /* Dark theme */
+            color: #ffffff;
+        }
+        
+        /* Screen Management */
+        .screen {
+            display: none;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        #homeScreen { display: block; } /* Show home screen first */
+
+        /* Big Blocks Design */
+        .block-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .big-block {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            flex: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .big-block:active { transform: scale(0.95); }
+
+        /* Code Editor Design */
+        textarea {
+            width: 100%;
+            height: 150px;
+            background-color: #1e1e1e;
+            color: #00ff00; /* Hacker green text */
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 16px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: #00adb5;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .btn-cam { background-color: #e84545; }
+        .btn-back { background-color: #393e46; margin-bottom: 20px; }
+        
+        /* Bottom Navigation Options */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            background-color: #1a1a2e;
+        }
+        .bottom-nav button {
+            flex: 1;
+            padding: 20px;
+            background: none;
+            border: none;
+            color: white;
+            border-top: 2px solid #333;
+            font-size: 16px;
+        }
+        .bottom-nav button.active { border-top: 2px solid #00adb5; color: #00adb5; }
+
+        /* 2D Preview Area (Hidden by default) */
+        #previewArea {
+            display: none;
+            text-align: center;
+            padding-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SCREEN 1: Home Page -->
+    <div id="homeScreen" class="screen">
+        <h2>Select Device</h2>
+        <div class="block-container">
+            <div class="big-block" onclick="openCarScreen()">
+                🚗 AI Car
+            </div>
+            <!-- Future devices can go here -->
+        </div>
+    </div>
+
+    <!-- SCREEN 2: Car Controller Page -->
+    <div id="carScreen" class="screen">
+        <button class="btn btn-back" onclick="goHome()">⬅ Back</button>
+        
+        <h3 id="topTitle">Code Editor</h3>
+
+        <!-- Code Editor Section -->
+        <div id="editorArea">
+            <textarea id="codeInput" placeholder="Type command here... e.g., FWD:5000:2"></textarea>
+            <button class="btn" onclick="sendCode()">▶ Upload & Run Code</button>
+            <button class="btn btn-cam" onclick="openCamera()">📷 Open AI Camera</button>
+        </div>
+
+        <!-- 2D Preview Section -->
+        <div id="previewArea">
+            <div style="width:100%; height:200px; background-color:#333; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                <h1 id="previewStatus" style="color: yellow;">Waiting for code...</h1>
+            </div>
+            <p>Here we will show the 2D path validation (❌ or ✅)</p>
+        </div>
+
+        <!-- Bottom 2 Options -->
+        <div class="bottom-nav">
+            <button id="navEditor" class="active" onclick="showEditor()">Code Editor</button>
+            <button id="navPreview" onclick="showPreview()">2D Preview</button>
+        </div>
+    </div>
+
+    <script>
+        // --- UI Navigation Logic ---
+        function openCarScreen() {
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('carScreen').style.display = 'block';
+        }
+
+        function goHome() {
+            document.getElementById('carScreen').style.display = 'none';
+            document.getElementById('homeScreen').style.display = 'block';
+        }
+
+        function showEditor() {
+            document.getElementById('editorArea').style.display = 'block';
+            document.getElementById('previewArea').style.display = 'none';
+            document.getElementById('topTitle').innerText = 'Code Editor';
+            document.getElementById('navEditor').classList.add('active');
+            document.getElementById('navPreview').classList.remove('active');
+        }
+
+        function showPreview() {
+            document.getElementById('editorArea').style.display = 'none';
+            document.getElementById('previewArea').style.display = 'block';
+            document.getElementById('topTitle').innerText = '2D Preview';
+            document.getElementById('navPreview').classList.add('active');
+            document.getElementById('navEditor').classList.remove('active');
+        }
+
+        // --- Logic to talk to Android App (CarBridge) ---
+        function sendCode() {
+            let code = document.getElementById('codeInput').value;
+            
+            // Check if app bridge is available (meaning we are inside the app)
+            if (window.CarBridge) {
+                window.CarBridge.sendCommand(code);
+            } else {
+                alert("Testing in Browser: Command is -> " + code);
+            }
+
+            // Update preview to show something happened
+            document.getElementById('previewStatus').innerText = "Path Analyzed: ✅";
+            document.getElementById('previewStatus').style.color = "#00ff00";
+        }
+
+        function openCamera() {
+            if (window.CarBridge) {
+                window.CarBridge.openCamera();
+            } else {
+                alert("Testing in Browser: Opening Camera...");
+            }
+        }
+    </script>
+</body>
+</html>
