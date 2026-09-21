@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI Wireless Controller</title>
     <style>
-        /* Modern Reset & Dark Glassmorphic Theme */
         body { 
             margin: 0; 
             font-family: 'Segoe UI', system-ui, sans-serif; 
@@ -14,7 +13,6 @@
             overflow: hidden; 
         }
         
-        /* --- HOME SCREEN UI --- */
         #homeScreen {
             position: absolute;
             top: 0; left: 0;
@@ -43,11 +41,7 @@
         }
         .device-card:active { transform: scale(0.95); }
 
-        /* --- MAIN APP UI --- */
-        #mainApp {
-            display: none;
-            width: 100vw; height: 100vh;
-        }
+        #mainApp { display: none; width: 100vw; height: 100vh; }
 
         .header { 
             background: rgba(15, 23, 42, 0.7); 
@@ -99,7 +93,6 @@
 
         .title { margin-top: 0; font-size: 22px; font-weight: 600; color: #f1f5f9; }
 
-        /* --- AI TOGGLE SWITCH --- */
         .toggle-container {
             display: flex;
             background: rgba(30, 41, 59, 0.7);
@@ -180,7 +173,6 @@
 </head>
 <body>
 
-    <!-- SCREEN 1: Home Screen (Device Selection) -->
     <div id="homeScreen">
         <button class="refresh-btn" style="align-self: flex-end; margin-right: 20px;" onclick="refreshApp()">🔄 Refresh</button>
         <div class="home-title">Select Your Device</div>
@@ -189,7 +181,6 @@
         </div>
     </div>
 
-    <!-- MAIN APP: Shown after selecting car -->
     <div id="mainApp">
         <div class="header">
             <button class="back-btn" onclick="goBackToHome()">← Back to Devices</button>
@@ -199,11 +190,9 @@
         <div class="viewport">
             <div class="slider" id="appSlider">
                 
-                <!-- Screen: Code Editor / AI Control -->
                 <div class="screen" id="screenEditor">
                     <h2 class="title">Command Center</h2>
 
-                    <!-- AI Toggle Selector -->
                     <div class="toggle-container">
                         <button class="toggle-btn active" id="btnSelectGemini" onclick="switchAI('gemini')">Gemini (Free)</button>
                         <button class="toggle-btn" id="btnSelectOpenAI" onclick="switchAI('openai')">OpenAI (GPT)</button>
@@ -220,7 +209,6 @@
                     <p id="aiStatus" style="color: #38bdf8; font-size: 14px; text-align: center; margin-top: 10px;"></p>
                 </div>
 
-                <!-- Screen: 2D Preview -->
                 <div class="screen" id="screenPreview">
                     <h2 class="title">2D Path Validation</h2>
                     <div class="preview-box">
@@ -244,7 +232,7 @@
         // ============================================================
         // --- AI Selection State ---
         // ============================================================
-        let selectedAI = 'gemini'; // Default
+        let selectedAI = 'gemini';
 
         function switchAI(provider) {
             selectedAI = provider;
@@ -264,7 +252,7 @@
         }
 
         // ============================================================
-        // --- Refresh WebView Logic ---
+        // --- Refresh ---
         // ============================================================
         function refreshApp() {
             const cleanUrl = window.location.origin + window.location.pathname;
@@ -272,7 +260,7 @@
         }
 
         // ============================================================
-        // --- Navigation Logic ---
+        // --- Navigation ---
         // ============================================================
         function openCarController() {
             document.getElementById('homeScreen').style.display = 'none';
@@ -301,15 +289,11 @@
         }
 
         // ============================================================
-        // --- Hardware Bridge (Android) ---
+        // --- Hardware Bridge ---
         // ============================================================
         function sendCode() {
             const code = document.getElementById('codeInput').value.trim();
-
-            if (!code) {
-                alert("Pehle koi command likho sahab!");
-                return;
-            }
+            if (!code) { alert("Pehle koi command likho sahab!"); return; }
 
             if (window.CarBridge && typeof window.CarBridge.sendCommand === 'function') {
                 window.CarBridge.sendCommand(code);
@@ -333,7 +317,7 @@
         }
 
         // ============================================================
-        // --- Shared Prompt & Speech Logic ---
+        // --- System Prompt ---
         // ============================================================
         const systemPrompt = `Tum ek mazedar aur smart AI assistant ho jo ek RC Car ko control karta hai. Tumhe user ko hamesha 'Sahab' bulana hai. 
 Agar user car ko move karne bole par distance ya time na bataye (jaise "car aage badhao"), toh gusse/mazaak me Hinglish me puchna: 'Aage toh le jau sahab, par kitna aage? Thukwaani hai kya gaadi?'.
@@ -345,60 +329,52 @@ Format:
     "action_code": "FWD:5000:2 ya BWD:3000:1 (agar invalid command ho toh '')"
 }`;
 
+        // ============================================================
+        // --- NATIVE VOICE — Android ka Google Voice Typing use karega ---
+        // ============================================================
         function talkToAI() {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
-            const aiStatus = document.getElementById('aiStatus');
-            const micBtn = document.getElementById('aiMicBtn');
-
             if (!apiKey) {
                 alert(`Pehle ${selectedAI === 'gemini' ? 'Gemini' : 'OpenAI'} API Key daalo sahab!`);
                 return;
             }
 
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-            if (!SpeechRecognition) {
-                aiStatus.innerText = "Speech support nahi mila. Text input use karo.";
-                const typed = prompt("Command likho (Sahab):");
+            // Android native mic ko bulao
+            if (window.CarBridge && typeof window.CarBridge.startVoiceRecognition === 'function') {
+                window.CarBridge.startVoiceRecognition();
+            } else {
+                // Browser fallback (for PC testing)
+                const typed = prompt("Android App nahi mila. Command type karo (Sahab):");
                 if (typed && typed.trim()) {
                     routeAI(typed.trim(), apiKey);
                 }
+            }
+        }
+
+        // Android app ye function call karega jab tum bol chukoge
+        window.receiveVoiceInput = async function(spokenText) {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const aiStatus = document.getElementById('aiStatus');
+            const micBtn = document.getElementById('aiMicBtn');
+
+            if (!apiKey) {
+                aiStatus.innerText = "⚠️ API Key gayab ho gayi. Dobara daalo.";
                 return;
             }
 
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'hi-IN';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+            aiStatus.innerText = `Aapne bola: "${spokenText}"\nSoch raha hu...`;
+            micBtn.innerText = "⏳ Processing...";
+            micBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
 
-            recognition.onstart = function () {
-                micBtn.innerText = "🔴 Sun raha hu... Bolo Sahab!";
-                micBtn.style.background = "linear-gradient(135deg, #ef4444, #b91c1c)";
-                aiStatus.innerText = "Listening...";
-            };
+            await routeAI(spokenText, apiKey);
 
-            recognition.onresult = async function (event) {
-                const userVoiceText = event.results[0][0].transcript;
-                aiStatus.innerText = `Aapne bola: "${userVoiceText}"\nSoch raha hu...`;
-                micBtn.innerText = "⏳ Processing...";
-                micBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+            micBtn.innerText = "🎙 Talk to AI (Sahab Mode)";
+            micBtn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
+        };
 
-                await routeAI(userVoiceText, apiKey);
-
-                micBtn.innerText = "🎙 Talk to AI (Sahab Mode)";
-                micBtn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
-            };
-
-            recognition.onerror = function (event) {
-                console.error("Speech error:", event.error);
-                aiStatus.innerText = "Awaaz detect nahi hui. Dobara koshish karo.";
-                micBtn.innerText = "🎙 Talk to AI (Sahab Mode)";
-                micBtn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
-            };
-
-            recognition.start();
-        }
-
+        // ============================================================
+        // --- Router ---
+        // ============================================================
         async function routeAI(userInput, apiKey) {
             if (selectedAI === 'gemini') {
                 await callGemini(userInput, apiKey);
@@ -408,7 +384,7 @@ Format:
         }
 
         // ============================================================
-        // --- 1. Google Gemini API ---
+        // --- Gemini ---
         // ============================================================
         async function callGemini(userInput, apiKey) {
             const aiStatus = document.getElementById('aiStatus');
@@ -441,7 +417,7 @@ Format:
         }
 
         // ============================================================
-        // --- 2. OpenAI GPT API ---
+        // --- OpenAI ---
         // ============================================================
         async function callOpenAI(userInput, apiKey) {
             const aiStatus = document.getElementById('aiStatus');
@@ -482,7 +458,7 @@ Format:
         }
 
         // ============================================================
-        // --- Response Handler & Speech ---
+        // --- Success Handler ---
         // ============================================================
         function handleSuccess(aiData) {
             speak(aiData.reply_text || "Hukum kijiye sahab.");
@@ -494,6 +470,9 @@ Format:
             }
         }
 
+        // ============================================================
+        // --- Text to Speech ---
+        // ============================================================
         function speak(text) {
             if (!window.speechSynthesis) return;
             window.speechSynthesis.cancel();
