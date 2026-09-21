@@ -244,7 +244,7 @@
         // ============================================================
         // --- AI Selection State ---
         // ============================================================
-        let selectedAI = 'gemini'; // Default
+        let selectedAI = 'gemini'; 
 
         function switchAI(provider) {
             selectedAI = provider;
@@ -305,7 +305,6 @@
         // ============================================================
         function sendCode() {
             const code = document.getElementById('codeInput').value.trim();
-
             if (!code) {
                 alert("Pehle koi command likho sahab!");
                 return;
@@ -317,10 +316,8 @@
                 alert("Testing in Browser: " + code);
             }
 
-            document.getElementById('previewStatus').innerText =
-                "Path Validated ✅\nCommand: " + code;
+            document.getElementById('previewStatus').innerText = "Path Validated ✅\nCommand: " + code;
             document.getElementById('previewStatus').style.color = "#10b981";
-
             setTimeout(() => slideTo(1), 300);
         }
 
@@ -333,7 +330,7 @@
         }
 
         // ============================================================
-        // --- Shared Prompt ---
+        // --- Shared Prompt & Speech Logic ---
         // ============================================================
         const systemPrompt = `Tum ek mazedar aur smart AI assistant ho jo ek RC Car ko control karta hai. Tumhe user ko hamesha 'Sahab' bulana hai. 
 Agar user car ko move karne bole par distance ya time na bataye (jaise "car aage badhao"), toh gusse/mazaak me Hinglish me puchna: 'Aage toh le jau sahab, par kitna aage? Thukwaani hai kya gaadi?'.
@@ -345,39 +342,29 @@ Format:
     "action_code": "FWD:5000:2 ya BWD:3000:1 (agar invalid command ho toh '')"
 }`;
 
-        // ============================================================
-        // --- NATIVE VOICE — Android Google Voice Typing use karega ---
-        // ============================================================
         function talkToAI() {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
-
             if (!apiKey) {
                 alert(`Pehle ${selectedAI === 'gemini' ? 'Gemini' : 'OpenAI'} API Key daalo sahab!`);
                 return;
             }
 
-            // Android native mic ko bulao
+            // Call Android Native Mic if available
             if (window.CarBridge && typeof window.CarBridge.startVoiceRecognition === 'function') {
                 window.CarBridge.startVoiceRecognition();
             } else {
-                // Browser fallback (PC testing)
-                const typed = prompt("Android App nahi mila. Command type karo (Sahab):");
+                const typed = prompt("Android app nahi mili. Command type karo (Sahab):");
                 if (typed && typed.trim()) {
                     routeAI(typed.trim(), apiKey);
                 }
             }
         }
 
-        // Android app is function ko call karega jab tum bol chukoge
+        // Callback function triggered by Android after native mic finishes
         window.receiveVoiceInput = async function(spokenText) {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
             const aiStatus = document.getElementById('aiStatus');
             const micBtn = document.getElementById('aiMicBtn');
-
-            if (!apiKey) {
-                aiStatus.innerText = "⚠️ API Key gayab ho gayi. Dobara daalo.";
-                return;
-            }
 
             aiStatus.innerText = `Aapne bola: "${spokenText}"\nSoch raha hu...`;
             micBtn.innerText = "⏳ Processing...";
@@ -389,9 +376,6 @@ Format:
             micBtn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
         };
 
-        // ============================================================
-        // --- Router ---
-        // ============================================================
         async function routeAI(userInput, apiKey) {
             if (selectedAI === 'gemini') {
                 await callGemini(userInput, apiKey);
@@ -401,11 +385,11 @@ Format:
         }
 
         // ============================================================
-        // --- 1. Google Gemini API ---
+        // --- 1. Google Gemini API (Updated to Stable Model) ---
         // ============================================================
         async function callGemini(userInput, apiKey) {
             const aiStatus = document.getElementById('aiStatus');
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             try {
                 const response = await fetch(url, {
