@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI Wireless Controller</title>
     <style>
-        /* Modern Reset & Dark Glassmorphic Theme */
         body {
             margin: 0;
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -176,7 +175,7 @@
 </head>
 <body>
 
-    <!-- SCREEN 1: Home Screen (Device Selection) -->
+    <!-- SCREEN 1: Home Screen -->
     <div id="homeScreen">
         <button class="refresh-btn" style="align-self: flex-end; margin-right: 20px;" onclick="refreshApp()">🔄 Refresh</button>
         <div class="home-title">Select Your Device</div>
@@ -185,7 +184,7 @@
         </div>
     </div>
 
-    <!-- MAIN APP: Shown after selecting car -->
+    <!-- MAIN APP -->
     <div id="mainApp">
         <div class="header">
             <button class="back-btn" onclick="goBackToHome()">← Back to Devices</button>
@@ -199,13 +198,12 @@
                 <div class="screen" id="screenEditor">
                     <h2 class="title">Command Center</h2>
 
-                    <!-- AI Toggle Selector -->
+                    <!-- AI Indicator (Groq Only) -->
                     <div class="toggle-container">
-                        <button class="toggle-btn active" id="btnSelectGemini" onclick="switchAI('gemini')">Gemini (Free)</button>
-                        <button class="toggle-btn" id="btnSelectOpenAI" onclick="switchAI('openai')">OpenAI (GPT)</button>
+                        <button class="toggle-btn active" id="btnSelectGroq">⚡ Groq (Ultra-Fast)</button>
                     </div>
 
-                    <input type="password" id="apiKeyInput" placeholder="Paste Gemini API Key (AIzaSy...)" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: white; box-sizing: border-box;">
+                    <input type="password" id="apiKeyInput" placeholder="Paste Groq API Key (gsk_...)" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: white; box-sizing: border-box;">
 
                     <textarea id="codeInput" placeholder="AI command yahan aayegi ya manually type karo..."></textarea>
 
@@ -239,31 +237,10 @@
 
     <script>
         // ============================================================
-        // --- AI Selection State & Memory System ---
+        // --- State & Memory System (Groq) ---
         // ============================================================
-        let selectedAI = 'gemini';
         let liveChatActive = false;
-
-        // AI ki Memory (Chat History) store karne ke liye arrays
-        let chatHistoryGemini = [];
-        let chatHistoryOpenAI = [];
-
-        function switchAI(provider) {
-            selectedAI = provider;
-            const gemBtn = document.getElementById('btnSelectGemini');
-            const oaiBtn = document.getElementById('btnSelectOpenAI');
-            const keyInput = document.getElementById('apiKeyInput');
-
-            if (provider === 'gemini') {
-                gemBtn.classList.add('active');
-                oaiBtn.classList.remove('active');
-                keyInput.placeholder = "Paste Fresh Gemini API Key (AIzaSy...)";
-            } else {
-                oaiBtn.classList.add('active');
-                gemBtn.classList.remove('active');
-                keyInput.placeholder = "Paste OpenAI API Key (sk-...)";
-            }
-        }
+        let chatHistoryGroq = [];
 
         // ============================================================
         // --- Refresh WebView Logic ---
@@ -335,7 +312,6 @@
         // --- 🎙 Mic Button Reset Helper (UI FIX) ---
         // ============================================================
         function resetMicButton() {
-            // Agar live mode ON hai, toh button "Stop (Live ON)" red state mein hi rahega
             if (liveChatActive) return;
 
             const btn = document.getElementById('aiMainBtn');
@@ -346,12 +322,12 @@
         }
 
         // ============================================================
-        // --- 🔥 UPDATED System Prompt (Devanagari STRICT) ---
+        // --- 🔥 System Prompt (Devanagari STRICT for TTS) ---
         // ============================================================
         const systemPrompt = `Ab tum ek AI nahi, balki ek chill aur casual human dost ho jo ek smart RC car ka mechanic/driver bhi hai. Tumhari memory active hai, tum pichli baatein yaad rakhte ho. User ko mazaak mein 'साहब' bula sakte ho, par baar-baar ek hi word mat ratna.
 
-RULES (STRICT - INAMUST FOLLOW):
-1. TUMHARA reply_text HAMESHA 100% DEVANAGARI SCRIPT (हिंदी अक्षरों) में होगा. Kisi bhi haal mein English alphabets ya Hinglish (jaise 'Arey Sahab', 'Done', 'OK') use NAHI karna. 
+RULES (STRICT - MUST FOLLOW):
+1. TUMHARA reply_text HAMESHA 100% DEVANAGARI SCRIPT (हिंदी अक्षरों) में होगा. Kisi bhi haal mein English alphabets ya Hinglish (jaise 'Arey Sahab', 'Done', 'OK') use NAHI karna.
    Example valid: "अरे साहब, बताइए कहाँ चलना है?"
    Example valid: "ठीक है साहब, गाड़ी आगे बढ़ा रहा हूँ"
    Example INVALID (mat karo): "Arey sahab, aage badha raha hu"
@@ -369,32 +345,12 @@ Format:
 }`;
 
         // ============================================================
-        // --- Single-Shot Talk to AI (unchanged) ---
-        // ============================================================
-        function talkToAI() {
-            const apiKey = document.getElementById('apiKeyInput').value.trim();
-            if (!apiKey) {
-                alert(`Pehle ${selectedAI === 'gemini' ? 'Gemini' : 'OpenAI'} API Key daalo sahab!`);
-                return;
-            }
-
-            if (window.CarBridge && typeof window.CarBridge.startVoiceRecognition === 'function') {
-                window.CarBridge.startVoiceRecognition();
-            } else {
-                const typed = prompt("Command type karo (Sahab):");
-                if (typed && typed.trim()) {
-                    routeAI(typed.trim(), apiKey);
-                }
-            }
-        }
-
-        // ============================================================
         // --- 🎙 MERGED SINGLE BUTTON: Talk to Sahab (Live Mode) ---
         // ============================================================
         function toggleLiveChat() {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
             if (!apiKey) {
-                alert(`Pehle ${selectedAI === 'gemini' ? 'Gemini' : 'OpenAI'} API Key daalo sahab!`);
+                alert("Pehle Groq API Key daalo sahab!");
                 return;
             }
 
@@ -432,7 +388,6 @@ Format:
 
             aiStatus.innerText = `Aapne bola: "${spokenText}"\nSoch raha hu...`;
 
-            // Show processing state if NOT live mode
             if (!liveChatActive && micBtn) {
                 micBtn.innerText = "⏳ Processing...";
                 micBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
@@ -443,65 +398,68 @@ Format:
             } catch (e) {
                 console.error("receiveVoiceInput error:", e);
             } finally {
-                // ✅ Button reset after processing
                 resetMicButton();
             }
         };
 
         async function routeAI(userInput, apiKey) {
             try {
-                if (selectedAI === 'gemini') {
-                    await callGemini(userInput, apiKey);
-                } else {
-                    await callOpenAI(userInput, apiKey);
-                }
+                await callGroqAPI(userInput, apiKey);
             } catch (e) {
                 console.error("routeAI error:", e);
             } finally {
-                // ✅ Final safety net — button reset on any path
                 resetMicButton();
             }
         }
 
         // ============================================================
-        // --- 1. Google Gemini API (With Memory & Auto-Retry) ---
+        // --- ⚡ Groq API (Ultra-Fast, Llama 3) ---
         // ============================================================
-        async function callGemini(userInput, apiKey, retries = 2) {
+        async function callGroqAPI(userInput, apiKey, retries = 2) {
             const aiStatus = document.getElementById('aiStatus');
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const url = 'https://api.groq.com/openai/v1/chat/completions';
 
             // Add user input to memory
-            chatHistoryGemini.push({ role: "user", parts: [{ text: userInput }] });
+            chatHistoryGroq.push({ role: "user", content: userInput });
+
+            const messagesPayload = [
+                { role: "system", content: systemPrompt },
+                ...chatHistoryGroq
+            ];
 
             for (let i = 0; i <= retries; i++) {
                 try {
                     const response = await fetch(url, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + apiKey
+                        },
                         body: JSON.stringify({
-                            system_instruction: { parts: [{ text: systemPrompt }] },
-                            contents: chatHistoryGemini,
-                            generationConfig: { response_mime_type: "application/json" }
+                            model: "llama-3.1-8b-instant",
+                            messages: messagesPayload,
+                            temperature: 0.7,
+                            max_tokens: 200,
+                            response_format: { type: "json_object" }
                         })
                     });
 
                     if (!response.ok) {
                         const err = await response.json();
-                        const errMsg = err.error?.message || "Unknown API Error";
+                        const errMsg = err.error?.message || "Unknown Groq Error";
 
-                        // Auto-Retry Logic on High Demand/Quota
-                        if (response.status === 503 || response.status === 429 ||
-                            errMsg.toLowerCase().includes("high demand")) {
+                        // Auto-Retry on overload / rate limit
+                        if (response.status === 503 || response.status === 429) {
                             if (i < retries) {
                                 aiStatus.innerText = `Server busy... Retrying (${i + 1}/${retries})...`;
-                                await new Promise(r => setTimeout(r, 1000));
+                                await new Promise(r => setTimeout(r, 800));
                                 continue;
                             }
                         }
 
-                        aiStatus.innerText = "Gemini Error: " + errMsg;
-                        chatHistoryGemini.pop();
-                        // ✅ Reset mic button on API error
+                        aiStatus.innerText = "Groq Error: " + errMsg;
+                        chatHistoryGroq.pop();
+                        // ✅ Button reset on API error
                         document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
                         document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
                         resetMicButton();
@@ -509,98 +467,35 @@ Format:
                     }
 
                     const data = await response.json();
-                    const rawJson = data.candidates[0].content.parts[0].text;
+                    let content = data.choices[0].message.content;
 
-                    // Add AI response to memory
-                    chatHistoryGemini.push({ role: "model", parts: [{ text: rawJson }] });
-
-                    // Keep memory limited to last 10 messages
-                    if (chatHistoryGemini.length > 10) {
-                        chatHistoryGemini = chatHistoryGemini.slice(chatHistoryGemini.length - 10);
+                    if (content.includes('```json')) {
+                        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
                     }
 
-                    handleSuccess(JSON.parse(rawJson));
-                    resetMicButton();
+                    // Add AI response to memory
+                    chatHistoryGroq.push({ role: "assistant", content: content });
+
+                    // Limit memory to last 10 messages
+                    if (chatHistoryGroq.length > 10) {
+                        chatHistoryGroq = chatHistoryGroq.slice(chatHistoryGroq.length - 10);
+                    }
+
+                    handleSuccess(JSON.parse(content));
                     return;
 
                 } catch (error) {
                     if (i < retries) {
-                        await new Promise(r => setTimeout(r, 1000));
+                        await new Promise(r => setTimeout(r, 800));
                         continue;
                     }
-                    aiStatus.innerText = "Gemini Fail: " + error.message;
-                    chatHistoryGemini.pop();
-                    // ✅ Reset mic button on exception
+                    aiStatus.innerText = "Groq Fail: " + error.message;
+                    chatHistoryGroq.pop();
+                    // ✅ Button reset on exception
                     document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
                     document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
                     resetMicButton();
                 }
-            }
-        }
-
-        // ============================================================
-        // --- 2. OpenAI GPT API (With Memory) ---
-        // ============================================================
-        async function callOpenAI(userInput, apiKey) {
-            const aiStatus = document.getElementById('aiStatus');
-
-            // Add user input to memory
-            chatHistoryOpenAI.push({ role: "user", content: userInput });
-
-            const messagesPayload = [
-                { role: "system", content: systemPrompt },
-                ...chatHistoryOpenAI
-            ];
-
-            try {
-                const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "gpt-4o-mini",
-                        messages: messagesPayload,
-                        temperature: 0.7
-                    })
-                });
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    aiStatus.innerText = "OpenAI Error: " + (err.error?.message || "Check API Key/Quota");
-                    chatHistoryOpenAI.pop();
-                    // ✅ Reset mic button on API error
-                    document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
-                    document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
-                    resetMicButton();
-                    return;
-                }
-
-                const data = await response.json();
-                let content = data.choices[0].message.content;
-                if (content.includes('```json')) {
-                    content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-                }
-
-                // Add AI response to memory
-                chatHistoryOpenAI.push({ role: "assistant", content: content });
-
-                // Limit memory to 10 messages
-                if (chatHistoryOpenAI.length > 10) {
-                    chatHistoryOpenAI = chatHistoryOpenAI.slice(chatHistoryOpenAI.length - 10);
-                }
-
-                handleSuccess(JSON.parse(content));
-                resetMicButton();
-
-            } catch (error) {
-                aiStatus.innerText = "OpenAI Fail: " + error.message;
-                chatHistoryOpenAI.pop();
-                // ✅ Reset mic button on exception
-                document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
-                document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
-                resetMicButton();
             }
         }
 
@@ -624,13 +519,13 @@ Format:
                 document.getElementById('aiStatus').innerText += "\n✅ Command Generated! UNO ko bhejo.";
             }
 
-            // ✅ Reset mic button after successful response
+            // ✅ Button reset after successful response
             document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
             document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
             resetMicButton();
         }
 
-        // Fallback TTS logic if running outside app
+        // Fallback TTS for browser testing
         function speakBrowser(text) {
             if (!window.speechSynthesis) return;
             window.speechSynthesis.cancel();
