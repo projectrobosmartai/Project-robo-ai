@@ -198,14 +198,14 @@
                 <div class="screen" id="screenEditor">
                     <h2 class="title">Command Center</h2>
 
-                    <!-- AI Toggle Selector — 3 Options -->
+                    <!-- AI Toggle Selector -->
                     <div class="toggle-container">
-                        <button class="toggle-btn active" id="btnSelectGroq" onclick="switchAI('groq')">⚡ Groq</button>
+                        <button class="toggle-btn active" id="btnSelectOpenRouter" onclick="switchAI('openrouter')">🌐 OpenRouter</button>
                         <button class="toggle-btn" id="btnSelectGemini" onclick="switchAI('gemini')">Gemini</button>
                         <button class="toggle-btn" id="btnSelectOpenAI" onclick="switchAI('openai')">OpenAI</button>
                     </div>
 
-                    <input type="password" id="apiKeyInput" placeholder="Paste Groq API Key (gsk_...)" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: white; box-sizing: border-box;">
+                    <input type="password" id="apiKeyInput" placeholder="Paste OpenRouter API Key (sk-or-...)" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: white; box-sizing: border-box;">
 
                     <textarea id="codeInput" placeholder="AI command yahan aayegi ya manually type karo..."></textarea>
 
@@ -241,29 +241,28 @@
         // ============================================================
         // --- AI Selection State & Memory System ---
         // ============================================================
-        let selectedAI = 'groq';
+        let selectedAI = 'openrouter';
         let liveChatActive = false;
 
         // Memory arrays for each provider
-        let chatHistoryGroq = [];
+        let chatHistoryOpenRouter = [];
         let chatHistoryGemini = [];
         let chatHistoryOpenAI = [];
 
         function switchAI(provider) {
             selectedAI = provider;
-            const groqBtn = document.getElementById('btnSelectGroq');
+            const orBtn = document.getElementById('btnSelectOpenRouter');
             const gemBtn = document.getElementById('btnSelectGemini');
             const oaiBtn = document.getElementById('btnSelectOpenAI');
             const keyInput = document.getElementById('apiKeyInput');
 
-            // Reset all
-            groqBtn.classList.remove('active');
+            orBtn.classList.remove('active');
             gemBtn.classList.remove('active');
             oaiBtn.classList.remove('active');
 
-            if (provider === 'groq') {
-                groqBtn.classList.add('active');
-                keyInput.placeholder = "Paste Groq API Key (gsk_...)";
+            if (provider === 'openrouter') {
+                orBtn.classList.add('active');
+                keyInput.placeholder = "Paste OpenRouter API Key (sk-or-...)";
             } else if (provider === 'gemini') {
                 gemBtn.classList.add('active');
                 keyInput.placeholder = "Paste Gemini API Key (AIzaSy...)";
@@ -381,7 +380,9 @@ Format:
         function toggleLiveChat() {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
             if (!apiKey) {
-                alert(`Pehle ${selectedAI === 'groq' ? 'Groq' : selectedAI === 'gemini' ? 'Gemini' : 'OpenAI'} API Key daalo sahab!`);
+                const providerName = selectedAI === 'openrouter' ? 'OpenRouter'
+                                   : selectedAI === 'gemini' ? 'Gemini' : 'OpenAI';
+                alert(`Pehle ${providerName} API Key daalo sahab!`);
                 return;
             }
 
@@ -435,8 +436,8 @@ Format:
 
         async function routeAI(userInput, apiKey) {
             try {
-                if (selectedAI === 'groq') {
-                    await callGroqAPI(userInput, apiKey);
+                if (selectedAI === 'openrouter') {
+                    await callOpenRouterAPI(userInput, apiKey);
                 } else if (selectedAI === 'gemini') {
                     await callGemini(userInput, apiKey);
                 } else {
@@ -450,17 +451,17 @@ Format:
         }
 
         // ============================================================
-        // --- ⚡ 1. Groq API (Ultra-Fast, Llama 3) ---
+        // --- 🌐 1. OpenRouter API (Llama 3.1 8B Free) ---
         // ============================================================
-        async function callGroqAPI(userInput, apiKey, retries = 2) {
+        async function callOpenRouterAPI(userInput, apiKey, retries = 2) {
             const aiStatus = document.getElementById('aiStatus');
-            const url = 'https://api.groq.com/openai/v1/chat/completions';
+            const url = 'https://openrouter.ai/api/v1/chat/completions';
 
-            chatHistoryGroq.push({ role: "user", content: userInput });
+            chatHistoryOpenRouter.push({ role: "user", content: userInput });
 
             const messagesPayload = [
                 { role: "system", content: systemPrompt },
-                ...chatHistoryGroq
+                ...chatHistoryOpenRouter
             ];
 
             for (let i = 0; i <= retries; i++) {
@@ -469,10 +470,12 @@ Format:
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + apiKey
+                            'Authorization': 'Bearer ' + apiKey,
+                            'HTTP-Referer': 'https://localhost',
+                            'X-Title': 'RC Car Controller'
                         },
                         body: JSON.stringify({
-                            model: "llama-3.1-8b-instant",
+                            model: "meta-llama/llama-3.1-8b-instruct:free",
                             messages: messagesPayload,
                             temperature: 0.7,
                             max_tokens: 200,
@@ -482,7 +485,7 @@ Format:
 
                     if (!response.ok) {
                         const err = await response.json();
-                        const errMsg = err.error?.message || "Unknown Groq Error";
+                        const errMsg = err.error?.message || "Unknown OpenRouter Error";
 
                         if (response.status === 503 || response.status === 429) {
                             if (i < retries) {
@@ -492,8 +495,10 @@ Format:
                             }
                         }
 
-                        aiStatus.innerText = "Groq Error: " + errMsg;
-                        chatHistoryGroq.pop();
+                        aiStatus.innerText = "OpenRouter Error: " + errMsg;
+                        chatHistoryOpenRouter.pop();
+                        document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
+                        document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
                         resetMicButton();
                         return;
                     }
@@ -505,10 +510,10 @@ Format:
                         content = content.replace(/```json/g, '').replace(/```/g, '').trim();
                     }
 
-                    chatHistoryGroq.push({ role: "assistant", content: content });
+                    chatHistoryOpenRouter.push({ role: "assistant", content: content });
 
-                    if (chatHistoryGroq.length > 10) {
-                        chatHistoryGroq = chatHistoryGroq.slice(chatHistoryGroq.length - 10);
+                    if (chatHistoryOpenRouter.length > 10) {
+                        chatHistoryOpenRouter = chatHistoryOpenRouter.slice(chatHistoryOpenRouter.length - 10);
                     }
 
                     handleSuccess(JSON.parse(content));
@@ -519,8 +524,10 @@ Format:
                         await new Promise(r => setTimeout(r, 800));
                         continue;
                     }
-                    aiStatus.innerText = "Groq Fail: " + error.message;
-                    chatHistoryGroq.pop();
+                    aiStatus.innerText = "OpenRouter Fail: " + error.message;
+                    chatHistoryOpenRouter.pop();
+                    document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
+                    document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
                     resetMicButton();
                 }
             }
@@ -665,6 +672,8 @@ Format:
                 document.getElementById('aiStatus').innerText += "\n✅ Command Generated! UNO ko bhejo.";
             }
 
+            document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
+            document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
             resetMicButton();
         }
 
