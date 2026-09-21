@@ -336,7 +336,7 @@ TUMHARA RESPONSE HAMESHA EK STRICT JSON FORMAT ME HONA CHAHIYE:
             finally { resetMicBtn(); }
         }
 
-        // ⚡ GROQ API
+        // ⚡ GROQ API — Updated model
         async function callGroqAPI(userInput, apiKey) {
             const st = document.getElementById('aiStatus');
             chatHistoryGroq.push({ role: "user", content: userInput });
@@ -350,7 +350,7 @@ TUMHARA RESPONSE HAMESHA EK STRICT JSON FORMAT ME HONA CHAHIYE:
                         'Authorization': 'Bearer ' + apiKey
                     },
                     body: JSON.stringify({
-                        model: 'llama3-8b-8192',
+                        model: 'llama-3.1-8b-instant',   // ✅ Updated model name
                         messages: messagesPayload,
                         temperature: 0.7,
                         max_tokens: 100,
