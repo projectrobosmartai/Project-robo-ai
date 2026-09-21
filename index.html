@@ -211,9 +211,7 @@
 
                     <button class="btn-upload" onclick="sendCode()">▶ Upload to UNO</button>
 
-                    <!-- ============================================ -->
-                    <!-- 🎙 MERGED SINGLE BUTTON — Talk to Sahab      -->
-                    <!-- ============================================ -->
+                    <!-- 🎙 MERGED SINGLE BUTTON — Talk to Sahab -->
                     <button class="btn-ai-mic" id="aiMainBtn" onclick="toggleLiveChat()">🎙 Talk to Sahab</button>
 
                     <p id="aiStatus" style="color: #38bdf8; font-size: 14px; text-align: center; margin-top: 10px; white-space: pre-line;"></p>
@@ -352,7 +350,7 @@ Format:
 }`;
 
         // ============================================================
-        // --- Single-Shot Talk to AI (kept as fallback, unchanged) ---
+        // --- Single-Shot Talk to AI (unchanged) ---
         // ============================================================
         function talkToAI() {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
@@ -385,14 +383,12 @@ Format:
             const st = document.getElementById('aiStatus');
 
             if (!window.CarBridge || typeof window.CarBridge.startLiveListening !== 'function') {
-                // Browser fallback
                 const typed = prompt("Android app nahi mili. Command type karo (Sahab):");
                 if (typed && typed.trim()) routeAI(typed.trim(), apiKey);
                 return;
             }
 
             if (liveChatActive) {
-                // STOP
                 liveChatActive = false;
                 window.CarBridge.stopLiveListening();
                 btn.innerText = "🎙 Talk to Sahab";
@@ -400,7 +396,6 @@ Format:
                 btn.style.boxShadow = "0 4px 15px rgba(109, 40, 217, 0.4)";
                 st.innerText = "⏹ Band ho gaya sahab.";
             } else {
-                // START
                 liveChatActive = true;
                 window.CarBridge.startLiveListening();
                 btn.innerText = "⏹ Stop (Live ON)";
@@ -428,40 +423,78 @@ Format:
         }
 
         // ============================================================
-        // --- 1. Google Gemini API ---
+        // --- 1. Google Gemini API (Ultra-Fast 8B Model & Auto-Retry) ---
         // ============================================================
-        async function callGemini(userInput, apiKey) {
+        async function callGemini(userInput, apiKey, retries = 2) {
             const aiStatus = document.getElementById('aiStatus');
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+            const micBtn = document.getElementById('aiMainBtn');
 
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        system_instruction: { parts: [{ text: systemPrompt }] },
-                        contents: [{ parts: [{ text: userInput }] }],
-                        generationConfig: { response_mime_type: "application/json" }
-                    })
-                });
+            // Using the 8B model for blazing fast real-time responses
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`;
 
-                if (!response.ok) {
-                    const err = await response.json();
-                    aiStatus.innerText = "Gemini Error: " + (err.error?.message || "Check API Key");
-                    return;
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            system_instruction: { parts: [{ text: systemPrompt }] },
+                            contents: [{ parts: [{ text: userInput }] }],
+                            generationConfig: {
+                                response_mime_type: "application/json",
+                                maxOutputTokens: 100, // Speed up: Limit response length
+                                temperature: 0.5 // Speed up: Less random thinking
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const err = await response.json();
+                        const errMsg = err.error?.message || "Unknown API Error";
+
+                        // Agar High Demand ya Rate Limit error ho, toh background retry karo
+                        if (response.status === 503 || response.status === 429 || errMsg.toLowerCase().includes("high demand")) {
+                            if (i < retries) {
+                                aiStatus.innerText = `Server busy... Auto-retrying (${i + 1}/${retries})...`;
+                                await new Promise(r => setTimeout(r, 800)); // Wait 800ms before retry
+                                continue;
+                            }
+                        }
+
+                        aiStatus.innerText = "Gemini Error: " + errMsg;
+                        if (micBtn && !liveChatActive) {
+                            micBtn.innerText = "🎙 Talk to Sahab";
+                            micBtn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
+                        }
+                        return;
+                    }
+
+                    const data = await response.json();
+                    const rawJson = data.candidates[0].content.parts[0].text;
+                    handleSuccess(JSON.parse(rawJson));
+
+                    if (micBtn && !liveChatActive) {
+                        micBtn.innerText = "🎙 Talk to Sahab";
+                        micBtn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
+                    }
+                    return; // Success, exit loop
+
+                } catch (error) {
+                    if (i < retries) {
+                        await new Promise(r => setTimeout(r, 800));
+                        continue;
+                    }
+                    aiStatus.innerText = "Gemini Fail: " + error.message;
+                    if (micBtn && !liveChatActive) {
+                        micBtn.innerText = "🎙 Talk to Sahab";
+                        micBtn.style.background = "linear-gradient(135deg, #8b5cf6, #6d28d9)";
+                    }
                 }
-
-                const data = await response.json();
-                const rawJson = data.candidates[0].content.parts[0].text;
-                handleSuccess(JSON.parse(rawJson));
-
-            } catch (error) {
-                aiStatus.innerText = "Gemini Fail: " + error.message;
             }
         }
 
         // ============================================================
-        // --- 2. OpenAI GPT API ---
+        // --- 2. OpenAI GPT API (unchanged) ---
         // ============================================================
         async function callOpenAI(userInput, apiKey) {
             const aiStatus = document.getElementById('aiStatus');
@@ -502,7 +535,7 @@ Format:
         }
 
         // ============================================================
-        // --- Response Handler & Speech ---
+        // --- Response Handler & Speech (unchanged) ---
         // ============================================================
         function handleSuccess(aiData) {
             speak(aiData.reply_text || "Hukum kijiye sahab.");
@@ -519,15 +552,13 @@ Format:
         // ============================================================
         function speak(text) {
             if (window.CarBridge && typeof window.CarBridge.speakText === 'function') {
-                // ✅ Android native TTS (human-like)
                 window.CarBridge.speakText(text);
             } else if (window.speechSynthesis) {
-                // Browser fallback — same human-like tuning
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'hi-IN';
-                utterance.rate = 0.9;    // ← slower = more natural
-                utterance.pitch = 1.05;  // ← slight natural pitch
+                utterance.rate = 0.9;
+                utterance.pitch = 1.05;
                 window.speechSynthesis.speak(utterance);
             }
         }
