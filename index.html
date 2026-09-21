@@ -241,21 +241,26 @@
         // ============================================================
         // --- AI Selection State & Memory System ---
         // ============================================================
-        let selectedAI = 'openrouter';
+        let selectedAI = 'openrouter';   // ✅ default OpenRouter
         let liveChatActive = false;
 
-        // Memory arrays for each provider
+        // Independent memory for each provider
         let chatHistoryOpenRouter = [];
         let chatHistoryGemini = [];
         let chatHistoryOpenAI = [];
 
+        // ============================================================
+        // --- Provider Switcher (fully independent) ---
+        // ============================================================
         function switchAI(provider) {
             selectedAI = provider;
+
             const orBtn = document.getElementById('btnSelectOpenRouter');
             const gemBtn = document.getElementById('btnSelectGemini');
             const oaiBtn = document.getElementById('btnSelectOpenAI');
             const keyInput = document.getElementById('apiKeyInput');
 
+            // Reset all active states
             orBtn.classList.remove('active');
             gemBtn.classList.remove('active');
             oaiBtn.classList.remove('active');
@@ -270,6 +275,8 @@
                 oaiBtn.classList.add('active');
                 keyInput.placeholder = "Paste OpenAI API Key (sk-...)";
             }
+
+            console.log('[AI] Switched to:', selectedAI);
         }
 
         // ============================================================
@@ -281,7 +288,7 @@
         }
 
         // ============================================================
-        // --- Navigation Logic ---
+        // --- Navigation ---
         // ============================================================
         function openCarController() {
             document.getElementById('homeScreen').style.display = 'none';
@@ -310,7 +317,7 @@
         }
 
         // ============================================================
-        // --- Hardware Bridge (Android) ---
+        // --- Hardware Bridge ---
         // ============================================================
         function sendCode() {
             const code = document.getElementById('codeInput').value.trim();
@@ -339,10 +346,11 @@
         }
 
         // ============================================================
-        // --- 🎙 Mic Button Reset Helper (UI FIX) ---
+        // --- 🎙 Mic Button Reset Helper ---
+        // (respects live mode — does nothing if live is ON)
         // ============================================================
         function resetMicButton() {
-            if (liveChatActive) return;
+            if (liveChatActive) return;   // don't touch button during live mode
 
             const btn = document.getElementById('aiMainBtn');
             if (!btn) return;
@@ -352,7 +360,7 @@
         }
 
         // ============================================================
-        // --- 🔥 System Prompt (Devanagari STRICT for TTS) ---
+        // --- System Prompt (STRICT Devanagari for TTS) ---
         // ============================================================
         const systemPrompt = `Ab tum ek AI nahi, balki ek chill aur casual human dost ho jo ek smart RC car ka mechanic/driver bhi hai. Tumhari memory active hai, tum pichli baatein yaad rakhte ho. User ko mazaak mein 'साहब' bula sakte ho, par baar-baar ek hi word mat ratna.
 
@@ -390,6 +398,7 @@ Format:
             const st = document.getElementById('aiStatus');
 
             if (!window.CarBridge || typeof window.CarBridge.startLiveListening !== 'function') {
+                // browser fallback
                 const typed = prompt("Android app nahi mili. Command type karo (Sahab):");
                 if (typed && typed.trim()) routeAI(typed.trim(), apiKey);
                 return;
@@ -412,7 +421,9 @@ Format:
             }
         }
 
-        // Android will call this
+        // ============================================================
+        // --- Voice Input Callback ---
+        // ============================================================
         window.receiveVoiceInput = async function(spokenText) {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
             const aiStatus = document.getElementById('aiStatus');
@@ -423,6 +434,7 @@ Format:
             if (!liveChatActive && micBtn) {
                 micBtn.innerText = "⏳ Processing...";
                 micBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+                micBtn.style.boxShadow = "0 4px 15px rgba(245, 158, 11, 0.4)";
             }
 
             try {
@@ -434,14 +446,21 @@ Format:
             }
         };
 
+        // ============================================================
+        // --- Router (independent paths) ---
+        // ============================================================
         async function routeAI(userInput, apiKey) {
+            console.log('[Router] selectedAI =', selectedAI);
+
             try {
                 if (selectedAI === 'openrouter') {
                     await callOpenRouterAPI(userInput, apiKey);
                 } else if (selectedAI === 'gemini') {
                     await callGemini(userInput, apiKey);
-                } else {
+                } else if (selectedAI === 'openai') {
                     await callOpenAI(userInput, apiKey);
+                } else {
+                    console.error('[Router] Unknown provider:', selectedAI);
                 }
             } catch (e) {
                 console.error("routeAI error:", e);
@@ -451,7 +470,7 @@ Format:
         }
 
         // ============================================================
-        // --- 🌐 1. OpenRouter API (Llama 3.1 8B Free) ---
+        // --- 🌐 1. OpenRouter API ---
         // ============================================================
         async function callOpenRouterAPI(userInput, apiKey, retries = 2) {
             const aiStatus = document.getElementById('aiStatus');
@@ -495,10 +514,8 @@ Format:
                             }
                         }
 
-                        aiStatus.innerText = "OpenRouter Error: " + errMsg;
+                        aiStatus.innerText = "🌐 OpenRouter Error: " + errMsg;
                         chatHistoryOpenRouter.pop();
-                        document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
-                        document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
                         resetMicButton();
                         return;
                     }
@@ -511,7 +528,6 @@ Format:
                     }
 
                     chatHistoryOpenRouter.push({ role: "assistant", content: content });
-
                     if (chatHistoryOpenRouter.length > 10) {
                         chatHistoryOpenRouter = chatHistoryOpenRouter.slice(chatHistoryOpenRouter.length - 10);
                     }
@@ -524,17 +540,15 @@ Format:
                         await new Promise(r => setTimeout(r, 800));
                         continue;
                     }
-                    aiStatus.innerText = "OpenRouter Fail: " + error.message;
+                    aiStatus.innerText = "🌐 OpenRouter Fail: " + error.message;
                     chatHistoryOpenRouter.pop();
-                    document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
-                    document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
                     resetMicButton();
                 }
             }
         }
 
         // ============================================================
-        // --- 2. Google Gemini API (With Memory & Auto-Retry) ---
+        // --- 2. Google Gemini API ---
         // ============================================================
         async function callGemini(userInput, apiKey, retries = 2) {
             const aiStatus = document.getElementById('aiStatus');
@@ -567,7 +581,7 @@ Format:
                             }
                         }
 
-                        aiStatus.innerText = "Gemini Error: " + errMsg;
+                        aiStatus.innerText = "🔷 Gemini Error: " + errMsg;
                         chatHistoryGemini.pop();
                         resetMicButton();
                         return;
@@ -577,7 +591,6 @@ Format:
                     const rawJson = data.candidates[0].content.parts[0].text;
 
                     chatHistoryGemini.push({ role: "model", parts: [{ text: rawJson }] });
-
                     if (chatHistoryGemini.length > 10) {
                         chatHistoryGemini = chatHistoryGemini.slice(chatHistoryGemini.length - 10);
                     }
@@ -590,7 +603,7 @@ Format:
                         await new Promise(r => setTimeout(r, 1000));
                         continue;
                     }
-                    aiStatus.innerText = "Gemini Fail: " + error.message;
+                    aiStatus.innerText = "🔷 Gemini Fail: " + error.message;
                     chatHistoryGemini.pop();
                     resetMicButton();
                 }
@@ -598,7 +611,7 @@ Format:
         }
 
         // ============================================================
-        // --- 3. OpenAI GPT API (With Memory) ---
+        // --- 3. OpenAI GPT API ---
         // ============================================================
         async function callOpenAI(userInput, apiKey) {
             const aiStatus = document.getElementById('aiStatus');
@@ -626,7 +639,7 @@ Format:
 
                 if (!response.ok) {
                     const err = await response.json();
-                    aiStatus.innerText = "OpenAI Error: " + (err.error?.message || "Check API Key/Quota");
+                    aiStatus.innerText = "🟢 OpenAI Error: " + (err.error?.message || "Check API Key/Quota");
                     chatHistoryOpenAI.pop();
                     resetMicButton();
                     return;
@@ -639,7 +652,6 @@ Format:
                 }
 
                 chatHistoryOpenAI.push({ role: "assistant", content: content });
-
                 if (chatHistoryOpenAI.length > 10) {
                     chatHistoryOpenAI = chatHistoryOpenAI.slice(chatHistoryOpenAI.length - 10);
                 }
@@ -647,14 +659,14 @@ Format:
                 handleSuccess(JSON.parse(content));
 
             } catch (error) {
-                aiStatus.innerText = "OpenAI Fail: " + error.message;
+                aiStatus.innerText = "🟢 OpenAI Fail: " + error.message;
                 chatHistoryOpenAI.pop();
                 resetMicButton();
             }
         }
 
         // ============================================================
-        // --- Response Handler & Native Speech Trigger ---
+        // --- Response Handler & Native TTS ---
         // ============================================================
         function handleSuccess(aiData) {
             const aiReply = aiData.reply_text || "Done.";
@@ -672,8 +684,6 @@ Format:
                 document.getElementById('aiStatus').innerText += "\n✅ Command Generated! UNO ko bhejo.";
             }
 
-            document.getElementById('aiMainBtn').innerText = '🎙 Talk to Sahab';
-            document.getElementById('aiMainBtn').style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
             resetMicButton();
         }
 
